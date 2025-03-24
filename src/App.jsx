@@ -6,9 +6,11 @@ import Header from "./assets/components/Header";
 import Register from "./assets/pages/Register";
 import Cars from "./assets/pages/Cars";
 import Car from "./assets/pages/Car";
+import MyTickets from "./assets/pages/MyTickets";
+import Ticket from "./assets/pages/Ticket";
+import Tickets from "./assets/pages/Tickets";
 
-function App() {
-  const [count, setCount] = useState(0);
+export default function App() {
 
   return (
     <Router>
@@ -17,11 +19,13 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/cars" element={<Cars />} />
+        <Route path="/my-tickets" element={<MyTickets />} />
+        <Route path="/tickets/:id" element={<Ticket/>} />
+        <Route path="/tickets" element={<Tickets/>} />
         <Route path="/car/:id" element={<Car />} />
       </Routes>
     </Router>
   );
 }
 
-export default App;
+
