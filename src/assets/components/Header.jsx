@@ -3,19 +3,50 @@ import { useNavigate } from "react-router-dom";
 
 const Header = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [role, setRole] = useState('customer');
     const navigate = useNavigate();
 
     useEffect(() => {
+
         // Check if token exists in localStorage
         const token = localStorage.getItem("token");
         setIsLoggedIn(!!token); // Convert to boolean
+
     }, []);
+    useEffect(() => {
+        if (isLoggedIn) {
+          const token = localStorage.getItem("token");
+          const fetchUser = async () => {
+            try {
+              const response = await fetch("http://127.0.0.1:8000/api/user", {
+                method: "GET",
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  "Content-Type": "application/json",
+                },
+              });
+    
+              if (!response.ok) {
+                throw new Error("Failed to fetch user");
+              }
+    
+              const user = await response.json();
+              setRole(user.role);
+            } catch (error) {
+              console.error("Error fetching user:", error);
+            }
+          };
+    
+          fetchUser();
+        }
+      }, [isLoggedIn]);
+    
 
     const handleLogout = async () => {
         try {
             const token = localStorage.getItem("token");
     
-            const response = await fetch("http://carrental.test/api/logout", {
+            const response = await fetch("http://127.0.0.1:8000/api/logout", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -41,27 +72,45 @@ const Header = () => {
             <div className="container mx-auto px-4 py-4 flex justify-between items-center">
                 {/* Logo */}
                 <div className="flex items-center">
-                    <h1 className="text-2xl font-bold text-blue-600">CarRental</h1>
+                    <h1 className="text-2xl font-bold text-blue-600">Customer Support</h1>
                 </div>
 
-                {/* Navigation Links */}
-                <nav className="hidden md:flex space-x-8">
-                    <a href="/" className="text-gray-700 hover:text-blue-600">
-                        Home
-                    </a>
-                    <a href="/cars" className="text-gray-700 hover:text-blue-600">
-                        Cars
-                    </a>
-                    <a href="/locations" className="text-gray-700 hover:text-blue-600">
-                        Locations
-                    </a>
-                    <a href="/about" className="text-gray-700 hover:text-blue-600">
-                        About
-                    </a>
-                    <a href="/contact" className="text-gray-700 hover:text-blue-600">
-                        Contact
-                    </a>
-                </nav>
+                {role === 'customer' && (
+                    <nav className="hidden md:flex space-x-8">
+                        <a href="/" className="text-gray-700 hover:text-blue-600">
+                            Home
+                        </a>
+                        <a href="/my-tickets" className="text-gray-700 hover:text-blue-600">
+                            My Tickets
+                        </a>
+                    </nav>
+                )}
+                {role === 'agent' && (
+                    <nav className="hidden md:flex space-x-8">
+                        <a href="/" className="text-gray-700 hover:text-blue-600">
+                            Home
+                        </a>
+                        <a href="/assinged-tickets" className="text-gray-700 hover:text-blue-600">
+                            assigned Tickets
+                        </a>
+                        <a href="/tickets" className="text-gray-700 hover:text-blue-600">
+                            Tickets
+                        </a>
+                    </nav>
+                )}
+                {role === 'admin' && (
+                    <nav className="hidden md:flex space-x-8">
+                        <a href="/" className="text-gray-700 hover:text-blue-600">
+                            Home
+                        </a>
+                        <a href="/users" className="text-gray-700 hover:text-blue-600">
+                            Users
+                        </a>
+                        <a href="/tickets" className="text-gray-700 hover:text-blue-600">
+                            Tickets
+                        </a>
+                    </nav>
+                )}
 
                 {/* Authentication Links */}
                 <div className="flex items-center space-x-4">
