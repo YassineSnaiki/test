@@ -23,7 +23,7 @@ export default function Login() {
     setError("");
 
     try {
-      const response = await fetch("http://carrental.test/api/login", {
+      const response = await fetch("http://127.0.0.1:8000/api/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -44,8 +44,6 @@ export default function Login() {
         localStorage.setItem("token", data.token);
       }
       location.href = "/";
-      // Redirect or update app state as needed
-      // For example: window.location.href = "/dashboard";
     } catch (err) {
       setError(err.message || "An error occurred during login");
     } finally {
