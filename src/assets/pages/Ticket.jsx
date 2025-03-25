@@ -11,8 +11,6 @@ export default function TicketDetail() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    console.log(id);
-    
     const token = localStorage.getItem("token")
     if (!token) {
       navigate("/login")
@@ -196,12 +194,19 @@ export default function TicketDetail() {
                 </span>
               )}
             </div>
-            <div className="text-sm text-gray-600">
-              <p>Created: {formatDate(ticket.created_at)}</p>
-              {ticket.updated_at && ticket.updated_at !== ticket.created_at && (
-                <p>Last Updated: {formatDate(ticket.updated_at)}</p>
-              )}
-            </div>
+            {/* Replace the created/updated dates with the ticket histories */}
+            {ticket.ticket_histories && ticket.ticket_histories.length > 0 && (
+              <div className="text-sm text-gray-600">
+                <h4 className="font-medium mb-2">Ticket History</h4>
+                <ul className="list-disc pl-5">
+                  {ticket.ticket_histories.map((history) => (
+                    <li key={history.id}>
+                      {history.message} <span className="text-gray-500">({formatDate(history.created_at)})</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
 
           <div className="border-t pt-4">
@@ -227,19 +232,7 @@ export default function TicketDetail() {
                 ))}
               </div>
             </div>
-          )}
-
-          {/* Action Buttons */}
-          {ticket.status !== "closed" && (
-            <div className="border-t mt-6 pt-4 flex justify-end">
-              <button className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded mr-3">
-                Add Comment
-              </button>
-              <button className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded">
-                Close Ticket
-              </button>
-            </div>
-          )}
+          )}        
         </div>
       </div>
     </div>
