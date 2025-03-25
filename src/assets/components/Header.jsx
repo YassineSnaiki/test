@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 const Header = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [role, setRole] = useState('customer');
+    const [role, setRole] = useState('');
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -90,10 +90,13 @@ const Header = () => {
                         <a href="/" className="text-gray-700 hover:text-blue-600">
                             Home
                         </a>
-                        <a href="/assinged-tickets" className="text-gray-700 hover:text-blue-600">
+                        <a href="/assigned-tickets" className="text-gray-700 hover:text-blue-600">
                             assigned Tickets
                         </a>
-                        <a href="/tickets" className="text-gray-700 hover:text-blue-600">
+                        <a href="/closed-tickets" className="text-gray-700 hover:text-blue-600">
+                            closed Tickets
+                        </a>
+                        <a href="/created-tickets" className="text-gray-700 hover:text-blue-600">
                             Tickets
                         </a>
                     </nav>
