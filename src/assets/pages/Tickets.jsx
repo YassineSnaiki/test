@@ -3,23 +3,22 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-export default function MyTickets() {
+export default function Tickets() {
   const [tickets, setTickets] = useState([]);
   const [newTicket, setNewTicket] = useState({ title: "", description: "" });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showForm, setShowForm] = useState(false);
-  const [role, setRole] = useState(null); // initialize as null instead of defaulting to "customer"
+  const [role, setRole] = useState(null);
   const navigate = useNavigate();
 
-  // First useEffect: fetch the logged-in user and update the role
+  // Fetch logged-in user and update role
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
       navigate("/login");
       return;
     }
-
     const fetchUser = async () => {
       try {
         const response = await fetch("http://127.0.0.1:8000/api/user", {
@@ -33,39 +32,31 @@ export default function MyTickets() {
         if (!response.ok) {
           throw new Error("Failed to fetch user");
         }
-
         const user = await response.json();
         setRole(user.role);
-        
       } catch (error) {
         console.error("Error fetching user:", error);
       }
     };
-
     fetchUser();
   }, [navigate]);
 
-  // Second useEffect: once role is known, fetch tickets if role allows
+  // Once role is known, fetch tickets if allowed
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
       navigate("/login");
       return;
     }
-
-    // Wait until role is fetched (role is not null)
-    if (role === null) return;
-
-    // If the role is 'customer', redirect away
+    if (role === null) return; // wait for role to load
     if (role === "customer") {
       navigate("/");
       return;
     }
-
     const fetchTickets = async () => {
       try {
         const response = await fetch("http://127.0.0.1:8000/api/tickets", {
-          method: "POST",
+          method: "GET",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
@@ -75,10 +66,10 @@ export default function MyTickets() {
         if (!response.ok) {
           throw new Error(`Error: ${response.status}`);
         }
-
         const data = await response.json();
+        // Store only tickets with status "created"
+        
         setTickets(data.data);
-        console.log(data.data);
         setLoading(false);
       } catch (err) {
         console.error("Failed to fetch tickets:", err);
@@ -86,22 +77,11 @@ export default function MyTickets() {
         setLoading(false);
       }
     };
-
     fetchTickets();
   }, [role, navigate]);
 
-  const getStatusColor = (status) => {
-    switch (status?.toLowerCase()) {
-      case "created":
-        return "bg-blue-500 text-white";
-      case "open":
-        return "bg-yellow-500 text-white";
-      case "closed":
-        return "bg-green-500 text-white";
-      default:
-        return "bg-gray-500 text-white";
-    }
-  };
+
+ 
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -111,52 +91,9 @@ export default function MyTickets() {
     });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
 
-    if (!newTicket?.title || !newTicket?.description) {
-      alert("Please fill in all fields");
-      return;
-    }
 
-    try {
-      const token = localStorage.getItem("token");
 
-      const response = await fetch("http://127.0.0.1:8000/api/tickets", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(newTicket),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log(data);
-      
-      // Add the new ticket to the list
-      setTickets((tickets) => [data, ...tickets]);
-      
-      // Reset form and hide it
-      setNewTicket({ title: "", description: "" });
-      setShowForm(false);
-    } catch (err) {
-      console.error("Failed to create ticket:", err);
-      alert("Failed to create ticket. Please try again.");
-    }
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setNewTicket({
-      ...newTicket,
-      [name]: value,
-    });
-  };
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -181,7 +118,7 @@ export default function MyTickets() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -211,90 +148,24 @@ export default function MyTickets() {
           </a>
         </div>
       </div>
-    )
+    );
   }
+  
 
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">My Tickets</h1>
-      <button
-          onClick={() => setShowForm(!showForm)}
-          className="bg-blue-600 float-right hover:bg-blue-700 text-white font-medium py-2 px-4 rounded flex items-center"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-            <path
-              fillRule="evenodd"
-              d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-              clipRule="evenodd"
-            />
-          </svg>
-          Create Ticket
-        </button>
-        {showForm && (
-        <div className="border rounded-lg shadow-sm mb-6 overflow-hidden">
-          <div className="bg-gray-50 p-4 border-b">
-            <h2 className="text-lg font-medium">Create New Ticket</h2>
-          </div>
-          <div className="p-6">
-            <form onSubmit={handleSubmit}>
-              <div className="mb-4">
-                <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
-                  Title
-                </label>
-                <input
-                  type="text"
-                  id="title"
-                  name="title"
-                  value={newTicket?.title}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Enter ticket title"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
-                </label>
-                <textarea
-                  id="description"
-                  name="description"
-                  value={newTicket?.description}
-                  onChange={handleInputChange}
-                  rows="4"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Describe your issue in detail"
-                  required
-                ></textarea>
-              </div>
-              <div className="flex justify-end space-x-3">
-                <button
-                  type="button"
-                  onClick={() => setShowForm(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-600 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  Submit Ticket
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-      {(!tickets||tickets.length === 0) ? (
+      
+   
+      {tickets.length === 0 ? (
         <div className="border rounded-lg shadow-sm">
           <div className="p-6">
             <div className="text-center py-8">
               <h3 className="text-xl font-medium mb-2">No tickets found</h3>
-              <p className="text-gray-600 mb-4">You don't have any support tickets yet.</p>
-                <button className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded">
-                  Create New Ticket
-                </button>
+              <p className="text-gray-600 mb-4">There are no tickets in "created" status.</p>
+              <button className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded">
+                Create New Ticket
+              </button>
             </div>
           </div>
         </div>
@@ -307,14 +178,11 @@ export default function MyTickets() {
                   <div>
                     <h3 className="text-xl font-semibold">{ticket.title}</h3>
                     <p className="text-sm text-gray-600">
-                      Ticket #{ticket.id} • Created on {formatDate(ticket.created_at)}
+                      Ticket #{ticket.id} • Created on{" "}
+                      {formatDate(ticket.created_at)}
                     </p>
                   </div>
-                  <div className="flex space-x-2 mt-2 md:mt-0">
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(ticket.status)}`}>
-                      {ticket.status}
-                    </span>
-                  </div>
+              
                 </div>
                 <p className="mb-4 line-clamp-2">{ticket.description}</p>
                 <div className="flex justify-between items-center">
@@ -327,18 +195,8 @@ export default function MyTickets() {
                         viewBox="0 0 24 24"
                         stroke="currentColor"
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                        />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                       </svg>
                       View Details
                     </button>
@@ -350,5 +208,5 @@ export default function MyTickets() {
         </div>
       )}
     </div>
-  )
+  );
 }
